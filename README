@@ -1,3 +1,9 @@
 COP5570 Term Project
 
-
+Stage 1 Linear parser assumptions:
+-Parsed file will have plaintext stripped from html
+   -Denoted by value text/plain
+-Will terminate at end of section 
+   -Denoted by "--Somenumericalvalue"
+-Only considers fully alpha words
+   -No contractions or posessive form 
