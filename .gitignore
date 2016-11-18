@@ -1,3 +1,4 @@
 inputs
 test-inputs
 spams
+*.pyc

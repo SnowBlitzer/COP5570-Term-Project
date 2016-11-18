@@ -2,7 +2,8 @@ import os, sys, concurrent.futures
 
 # Global data structures
 emails = dict()
-total_content = list()
+parse_results = list()
+filtered_results = list()
 
 def clean_line(lineHandedIn):
 	"""
@@ -18,6 +19,10 @@ def clean_line(lineHandedIn):
 			uniqueSet.add(charStrippedText)
 	return uniqueSet
 
+def filter_data(item):
+	if type(item) is set and len(item) is not 0:
+		filtered_results.append(item)
+
 def analyze_file(file_path):
 	"""
 	Handles a single file path.
@@ -25,7 +30,7 @@ def analyze_file(file_path):
 
 	addFlag = False
 	content = set()
-	global total_content
+	global parse_results
 	global emails
 
 	with open(file_path,"r") as file_contents:
@@ -50,48 +55,38 @@ def analyze_file(file_path):
 			elif len(line_tokens) == 1 and addFlag and not line_tokens[0].isalnum():
 				addFlag = False
 				break
-		total_content.append(content)
+		parse_results.append(content)
 
-def parse_files(path):
+def parse_files(files):
 	"""
-	Extracts content from all files within the given
-	path.
+	Extracts content from list of files.
 	"""
-
-	# Add missing / if needed
-	if not path.endswith("/"):
-		path += "/"
-
-	def qualify(file_path):
-		"""
-		Approves files to be included in analysis.
-		"""
-		return os.path.isfile(file_path) and (file_path.endswith(".lorien"))
-
-	#counter = 0
-
-	#Look through all qualifying files in path
-	files = (filename for filename in os.listdir(path) if qualify(path + filename))
-	# for filename in files:
-	# 	file_path = path + filename
-	# 	analyze_file(file_path)
-	# 	#counter += 1
 
 	# code from stack_overflow
 	executor = concurrent.futures.ThreadPoolExecutor(10)
-	futures = [executor.submit(analyze_file, path + filename) for filename in files]
+	futures = [executor.submit(analyze_file, filename) for filename in files]
 	concurrent.futures.wait(futures)
 
-	final_content = [item for item in total_content if len(item) is not 0]
+
+	global parse_results
+
+	filtered_results = [item for item in parse_results if len(item) is not 0]
 
 
-	print final_content
-	#print counter
-	#print emails
+	# clean dataset
+	# executor = concurrent.futures.ThreadPoolExecutor(10)
+	# futures = [executor.submit(filter_data, item) for item in parse_results]
+	# concurrent.futures.wait(futures)
+
+	# global filtered_results
+	return filtered_results
+
+def parse_files_single_thread(files):
+	for file_path in files:
+		analyze_file(file_path)
+	global parse_results
+	return [item for item in parse_results if len(item) is not 0]
+
 
 if __name__ == '__main__':
-	if len(sys.argv) is not 2:
-		print "usage: python %s pathname" % os.path.basename(__file__)
-	else:
-		path = sys.argv[1]
-		parse_files(path)
+	print "This script only contains functions, please use driver.py."
