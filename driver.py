@@ -10,5 +10,4 @@ if __name__ == '__main__':
 		path = sys.argv[1]
 		#parse_files(path)
 		files = get_filenames_from_path(path)
-		#data  = parse_files(files)
-		data = parse_files_single_thread(files)
+		data  = parse_files(files)
