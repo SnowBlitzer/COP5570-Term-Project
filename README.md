@@ -5,6 +5,14 @@
 2. Analysis of email data for incorrect spellings.
 3. Correlation of incorrect spelling with other attributes.
 
+### MongoDB Document Format
+    document = {
+        "filename":String,    # Unique Key of filename
+        "email":String,       # The `from` field
+        "words":List,         # List of unique words
+        "raw":String          # The raw email text as string.
+    }
+
 ## Stage 1
 
 #### Stage 1 Linear Parser Assumptions:

@@ -1,9 +1,18 @@
 import os, sys, concurrent.futures
+from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
+from collections import Counter
 
-# Global data structures
-emails = dict()
-parse_results = list()
-filtered_results = list()
+# Init db connection
+client = MongoClient()
+db = client['spam-db']
+spams = db.spams
+spams.create_index("filename", unique=True)
+
+successes = 0
+fails = 0
+errors = Counter()
+
 
 def clean_line(lineHandedIn):
 	"""
@@ -28,12 +37,12 @@ def analyze_file(file_path):
 	Handles a single file path.
 	"""
 
-	addFlag = False
+	global spams
 	content = set()
-	global parse_results
-	global emails
+	email = None
 
 	with open(file_path,"r") as file_contents:
+		addFlag = False
 		#Iterate through file contents
 		for line in file_contents:
 			line_tokens = line.split()
@@ -45,22 +54,49 @@ def analyze_file(file_path):
 					content = content.union(clean_line(line_tokens))
 				#Add the email to the hash table (counter)
 				elif line_tokens[0] == "From:":
-					if line_tokens[-1] in emails:
-						emails[line_tokens[-1]] += 1
-					else:
-						emails[line_tokens[-1]] = 1
+					email = line_tokens[-1]
 				#If the content is plain/text, set the addFlag
 				elif line_tokens[1] == "text/plain" or line_tokens[1] == "text/plain;":
 					addFlag = True
 			elif len(line_tokens) == 1 and addFlag and not line_tokens[0].isalnum():
 				addFlag = False
 				break
-		parse_results.append(content)
+
+		# Format data for Mongo
+		document = {
+			"email":email,
+			"words":list(content),
+			"filename":file_path.split("/")[-1],
+			"raw":str(open(file_path,"r").read())
+		}
+
+		global successes
+		global fails
+		global errors
+
+		# Attempt insert to Mongo
+		try:
+			spam_id = spams.insert_one(document)
+			if spam_id is not None:
+				successes += 1
+		except Exception as e:
+			fails += 1
+			errors[type(e)] += 1
+
+
+
 
 def parse_files(files):
 	"""
 	Extracts content from list of files.
 	"""
+
+	global spams
+
+	count_before = spams.count()
+
+	print "There are currently %i stored records." % count_before
+	print "Preparing to process %i files." % len(files)
 
 	# code from stack_overflow
 	executor = concurrent.futures.ThreadPoolExecutor(10)
@@ -68,24 +104,16 @@ def parse_files(files):
 	concurrent.futures.wait(futures)
 
 
-	global parse_results
+	count_after = spams.count()
+	print "There are now %i stored records." % spams.count()
 
-	filtered_results = [item for item in parse_results if len(item) is not 0]
+	global successes
+	global fails
+	global errors
 
-
-	# clean dataset
-	# executor = concurrent.futures.ThreadPoolExecutor(10)
-	# futures = [executor.submit(filter_data, item) for item in parse_results]
-	# concurrent.futures.wait(futures)
-
-	# global filtered_results
-	return filtered_results
-
-def parse_files_single_thread(files):
-	for file_path in files:
-		analyze_file(file_path)
-	global parse_results
-	return [item for item in parse_results if len(item) is not 0]
+	print "There were {0} successes and {1} failures".format(successes, fails)
+	if len(errors) > 0:
+		print errors
 
 
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ def get_filenames_from_path(path):
 		path += "/"
 
 	# Select qualifying files.
-	files = (path + filename for filename in os.listdir(path) if qualify(path + filename)) # single thread approach
+	files = [path + filename for filename in os.listdir(path) if qualify(path + filename)] # single thread approach
 
 	# code from stack_overflow
 	# executor = concurrent.futures.ThreadPoolExecutor(10)

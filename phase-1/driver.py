@@ -1,5 +1,5 @@
 from path_tools import get_filenames_from_path
-from file_parser import parse_files, parse_files_single_thread
+from file_parser import parse_files
 
 import sys,os
 
