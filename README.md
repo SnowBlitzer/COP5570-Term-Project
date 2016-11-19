@@ -5,13 +5,27 @@
 2. Analysis of email data for incorrect spellings.
 3. Correlation of incorrect spelling with other attributes.
 
-### MongoDB Document Format
+## MongoDB
+
+### Document Format
     document = {
         "filename":String,    # Unique Key of filename
         "email":String,       # The `from` field
         "words":List,         # List of unique words
         "raw":String          # The raw email text as string.
     }
+
+### How to Access Spams
+    client = MongoClient()    # Open client connection
+    db = client['spam-db']    # choose database
+    spams = db.spams          # this is our collection
+
+    spam_id = spams.insert_one(document)  # example insert
+    document = spams.find_one()           # get any item
+    document = spams.find_one({"email":"andrew@butts.com"})    # specific item
+
+Additional information available at
+https://api.mongodb.com/python/current/tutorial.html
 
 ## Stage 1
 
