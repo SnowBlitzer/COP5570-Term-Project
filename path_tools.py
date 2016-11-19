@@ -28,5 +28,5 @@ def get_filenames_from_path(path):
 	# futures = [executor.submit(collect, path + filename) for filename in os.listdir(path)]
 	# concurrent.futures.wait(futures)
 
-	global file_paths
-	return file_paths
+	#global file_paths
+	return files
