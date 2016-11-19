@@ -11,6 +11,7 @@ spams.create_index("filename", unique=True)
 
 successes = 0
 fails = 0
+duplicates = 0
 errors = Counter()
 
 
@@ -79,6 +80,8 @@ def analyze_file(file_path):
 			spam_id = spams.insert_one(document)
 			if spam_id is not None:
 				successes += 1
+		except DuplicateKeyError:
+			duplicates += 1
 		except Exception as e:
 			fails += 1
 			errors[type(e)] += 1
@@ -110,8 +113,9 @@ def parse_files(files):
 	global successes
 	global fails
 	global errors
+	global duplicates
 
-	print "There were {0} successes and {1} failures".format(successes, fails)
+	print "There were {0} successes, {1} failures, and {2} duplicates".format(successes, fails, duplicates)
 	if len(errors) > 0:
 		print errors
 
