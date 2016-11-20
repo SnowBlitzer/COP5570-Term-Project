@@ -12,6 +12,7 @@
         "filename":String,    # Unique Key of filename
         "email":String,       # The `from` field
         "words":List,         # List of unique words
+	    "wordCount":Dict,     # Count of words, Str:Int
         "raw":String          # The raw email text as string.
     }
 

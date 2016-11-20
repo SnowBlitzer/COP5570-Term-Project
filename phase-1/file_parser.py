@@ -9,9 +9,11 @@ db = client['spam-db']
 spams = db.spams
 spams.create_index("filename", unique=True)
 
-successes = 0
+inserts = 0
 fails = 0
 duplicates = 0
+updates = 0
+matches = 0
 errors = Counter()
 
 
@@ -23,11 +25,13 @@ def clean_line(lineHandedIn):
 	"""
 	charactersToBeStripped = ".,;<>:[]\"|"
 	uniqueSet = set()
-	for x in lineHandedIn:
-		charStrippedText = x.strip(charactersToBeStripped)
+	wordCount = Counter()
+	for word in lineHandedIn:
+		charStrippedText = word.strip(charactersToBeStripped)
 		if len(charStrippedText) > 2 and charStrippedText.isalpha():
 			uniqueSet.add(charStrippedText)
-	return uniqueSet
+			wordCount[charStrippedText] += 1
+	return uniqueSet, wordCount
 
 def filter_data(item):
 	if type(item) is set and len(item) is not 0:
@@ -40,10 +44,11 @@ def analyze_file(file_path):
 
 	global spams
 	content = set()
+	word_count = Counter()
 	email = None
 
 	with open(file_path,"r") as file_contents:
-		addFlag = False
+		add_flag = False
 		#Iterate through file contents
 		for line in file_contents:
 			line_tokens = line.split()
@@ -51,37 +56,63 @@ def analyze_file(file_path):
 			if len(line_tokens) > 1:
 				#if the flag is set, clean up all the data.
 				#Discard links and strip characters. Add it to the list
-				if addFlag:
-					content = content.union(clean_line(line_tokens))
+				if add_flag:
+					new_content, new_count = clean_line(line_tokens)
+					content = content.union(new_content)
+					word_count += new_count
 				#Add the email to the hash table (counter)
 				elif line_tokens[0] == "From:":
 					email = line_tokens[-1]
-				#If the content is plain/text, set the addFlag
+				#If the content is plain/text, set the add_flag
 				elif line_tokens[1] == "text/plain" or line_tokens[1] == "text/plain;":
-					addFlag = True
-			elif len(line_tokens) == 1 and addFlag and not line_tokens[0].isalnum():
-				addFlag = False
+					add_flag = True
+			elif len(line_tokens) == 1 and add_flag and not line_tokens[0].isalnum():
+				add_flag = False
 				break
 
 		# Format data for Mongo
 		document = {
 			"email":email,
 			"words":list(content),
+			"wordCount":word_count,
 			"filename":file_path.split("/")[-1],
-			"raw":str(open(file_path,"r").read())
+			#"raw":str(open(file_path,"r").read())
 		}
 
-		global successes
+		global inserts
 		global fails
 		global errors
+		global duplicates
+		global updates
+		global matches
 
 		# Attempt insert to Mongo
 		try:
 			spam_id = spams.insert_one(document)
 			if spam_id is not None:
-				successes += 1
+				inserts += 1
+
 		except DuplicateKeyError:
 			duplicates += 1
+
+			try:
+				result = spams.update_one(
+					{
+						'filename': document['filename']
+					},
+					{
+						"$set": {
+							"email": document['email'],
+							"wordCount": document['wordCount'],
+							"words": document['words']
+						}
+					}
+				)
+				matches += result.matched_count
+				updates += result.modified_count
+			except Exception as e:
+				print e
+
 		except Exception as e:
 			fails += 1
 			errors[type(e)] += 1
@@ -110,12 +141,17 @@ def parse_files(files):
 	count_after = spams.count()
 	print "There are now %i stored records." % spams.count()
 
-	global successes
+	global inserts
 	global fails
 	global errors
 	global duplicates
+	global updates
+	global matches
 
-	print "There were {0} successes, {1} failures, and {2} duplicates".format(successes, fails, duplicates)
+	print "There were %i new inserts." % inserts
+	print "There were {0} duplicate documents, {1} of which were found and {2} patched.".format(duplicates, matches, updates)
+
+	print "There were %i failures." % fails
 	if len(errors) > 0:
 		print errors
 
