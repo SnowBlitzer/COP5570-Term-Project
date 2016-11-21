@@ -9,11 +9,13 @@
 
 ### Document Format
     document = {
-        "filename":String,    # Unique Key of filename
-        "email":String,       # The `from` field
-        "words":List,         # List of unique words
-	    "wordCount":Dict,     # Count of words, Str:Int
-        "raw":String          # The raw email text as string.
+        "filename":String,       # Unique Key of filename
+        "email":String,          # The `from` field
+        "words":List,            # List of unique words
+	"wordCount":Dict,        # Count of words, Str:Int
+        "raw":String,            # The raw email text as string.
+	"englishWords":List,     # List of English words
+	"nonEnglishWords": List  # List of non English words
     }
 
 ### How to Access Spams
@@ -68,5 +70,5 @@ Using no multithreading produced a 0m9.252s
 1. Cycles through database
 2. Cycles through words list in each entry
 3. Determines if each list entry is an english language word
-
+4. Adds list of English and non English words to each Document
 
