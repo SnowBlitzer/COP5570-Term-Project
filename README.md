@@ -60,3 +60,13 @@ the sam small sample dataset.
 Multithreading all 3 steps produced a 3m44.440s runtime.
 
 Using no multithreading produced a 0m9.252s
+
+
+## Stage 2
+
+#### Stage 2 Steps
+1. Cycles through database
+2. Cycles through words list in each entry
+3. Determines if each list entry is an english language word
+
+
