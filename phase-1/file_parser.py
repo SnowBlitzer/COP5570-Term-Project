@@ -52,7 +52,6 @@ def analyze_file(file_path):
 
 	with open(file_path,"r") as file_contents:
 		add_flag = False
-		seven_encoded = False
 		#Iterate through file contents
 		for line in file_contents:
 			if character_encoding != None:
@@ -76,12 +75,12 @@ def analyze_file(file_path):
 				#If the content is plain/text, set the add_flag
 				elif line_tokens[1] == "text/plain" or line_tokens[1] == "text/plain;":
 					add_flag = True
-				#If The content is encoded in 7bit, set the seven_encoded flag
+				
 				
 			elif len(line_tokens) == 1 and add_flag and not line_tokens[0].isalnum():
 				add_flag = False
 				break
-
+		
 		# Format data for Mongo
 		document = {
 			"email":email,
@@ -90,6 +89,7 @@ def analyze_file(file_path):
 			"filename":file_path.split("/")[-1],
 			#"raw":str(open(file_path,"r").read())
 		}
+		print file_path.split("/")[-1]," ",list(content)
 
 		global inserts
 		global fails
@@ -100,10 +100,14 @@ def analyze_file(file_path):
 
 		# Attempt insert to Mongo
 		try:
+			pass
+		#	print filepath.split("/")[-1]," ",word_count
+			
+			"""
 			spam_id = spams.insert_one(document)
 			if spam_id is not None:
 				inserts += 1
-
+			"""
 		except DuplicateKeyError:
 			duplicates += 1
 
