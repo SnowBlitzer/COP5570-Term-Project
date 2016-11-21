@@ -9,9 +9,34 @@ db = client['spam-db']    # choose database
 spams = db.spams          # this is our collection
 
 for message in spams.find():
-	for word in message['words']:
+	wordList = []
+	nonWordList = []
+	
+	#cycles through dictionary of words
+	for word in message['wordCount']:
 		if(dict.check(word)):
-			print word
+			wordList.append(word)
 		else:
-			print "-----" + word
+			nonWordList.append(word)
+	
+	#adds lists of words and non words to DB
+	spams.update_one(
+		{
+			'filename': message['filename']
+		},
+		{
+			"$set": {
+				"englishWords": wordList,
+				"nonEnglishWords": nonWordList
+			}
+		}
+	)
+
+		
+	#for printing during testing
+	#print "------Words:--------\n"
+	#print message['englishWords']
+
+	#print "------Not Words:--------\n"
+	#print message['nonEnglishWords']
 
