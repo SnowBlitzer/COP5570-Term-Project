@@ -12,10 +12,10 @@
         "filename":String,       # Unique Key of filename
         "email":String,          # The `from` field
         "words":List,            # List of unique words
-	"wordCount":Dict,        # Count of words, Str:Int
+        "wordCount":Dict,        # Count of words, Str:Int
         "raw":String,            # The raw email text as string.
-	"englishWords":List,     # List of English words
-	"nonEnglishWords": List  # List of non English words
+        "englishWords":List,     # List of English words
+        "nonEnglishWords": List  # List of non English words
     }
 
 ### How to Access Spams
