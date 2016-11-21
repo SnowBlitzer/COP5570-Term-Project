@@ -37,7 +37,7 @@ https://api.mongodb.com/python/current/tutorial.html
    - Denoted by "--Somenumericalvalue"
 - Only considers fully alpha words
    - No contractions or posessive form
-
+- Parser skips over files with Japanese character sets
 
 #### Stage 1 Steps & Multithreading
 1. Creating full path names for all input files.

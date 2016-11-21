@@ -1,4 +1,4 @@
-import os, sys, concurrent.futures
+import os, sys, concurrent.futures, codecs
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from collections import Counter
@@ -15,7 +15,9 @@ duplicates = 0
 updates = 0
 matches = 0
 errors = Counter()
-
+ 
+def find_decoding(decodingWord):
+	return decodingWord.strip("\"")
 
 def clean_line(lineHandedIn):
 	"""
@@ -46,14 +48,22 @@ def analyze_file(file_path):
 	content = set()
 	word_count = Counter()
 	email = None
+	character_encoding = None
 
 	with open(file_path,"r") as file_contents:
 		add_flag = False
+		seven_encoded = False
 		#Iterate through file contents
 		for line in file_contents:
+			if character_encoding != None:
+				line = codecs.decode(line, character_encoding)
 			line_tokens = line.split()
 
 			if len(line_tokens) > 1:
+				
+				#Finds the encoding for the file content
+				if line_tokens[-1][0:7] == "charset":
+					character_encoding = find_decoding(line_tokens[8:])
 				#if the flag is set, clean up all the data.
 				#Discard links and strip characters. Add it to the list
 				if add_flag:
@@ -66,6 +76,8 @@ def analyze_file(file_path):
 				#If the content is plain/text, set the add_flag
 				elif line_tokens[1] == "text/plain" or line_tokens[1] == "text/plain;":
 					add_flag = True
+				#If The content is encoded in 7bit, set the seven_encoded flag
+				
 			elif len(line_tokens) == 1 and add_flag and not line_tokens[0].isalnum():
 				add_flag = False
 				break
