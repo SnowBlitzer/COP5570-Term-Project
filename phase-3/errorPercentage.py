@@ -11,8 +11,9 @@ correctWordCount = 0.0
 correctWordsWithErrors = 0.0
 
 for message in spams.find():
-
-	messageCount += 1
+	
+	if len(message['nonEnglishWords']) + len(message['englishWords']) > 0:
+		messageCount += 1
 	
 	wrongWordCount += len(message['nonEnglishWords'])
 	if len(message['nonEnglishWords']) > 0:
