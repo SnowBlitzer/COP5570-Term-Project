@@ -1,0 +1,5 @@
+1. Take the top x offending emailers and see what type of emails they send
+2. Analyze the general level of diction of the emails
+   - See if misspellings are intended to be obvious
+   - See if misspellings are subtle
+
