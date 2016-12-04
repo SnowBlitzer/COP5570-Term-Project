@@ -31,6 +31,10 @@ class DB_Driver:
 
         """
 
+        if document['email'] is None:
+            self.results['fails'] += 1
+            return
+
         # Attempt insert new document into Mongo
         try:
             spam_id = self.spams.insert_one(document)
@@ -73,4 +77,4 @@ class DB_Driver:
             self.results['fails'] += 1
             self.errors[type(e)] += 1
 
-db = DB_Driver()
+# db = DB_Driver()

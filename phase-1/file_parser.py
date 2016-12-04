@@ -2,7 +2,7 @@ import os, sys, concurrent.futures
 # from pymongo import MongoClient
 # from pymongo.errors import DuplicateKeyError
 from collections import Counter
-from db_client import db
+from db_client import DB_Driver
 
 # # Init db connection
 # client = MongoClient()
@@ -45,6 +45,8 @@ def analyze_file(file_path):
 	Handles a single file path.
 	"""
 
+	db = DB_Driver()
+
 	# global spams
 	content = set()
 	word_count = Counter()
@@ -84,6 +86,8 @@ def analyze_file(file_path):
 
 		db.insert_document(document)
 
+	return db.results, db.errors
+
 
 def parse_files(files, file_year = None):
 	"""
@@ -92,27 +96,39 @@ def parse_files(files, file_year = None):
 
 	global year
 	year = file_year
+	results = Counter()
+	errors = Counter()
 
+	db = DB_Driver()
 	count_before = db.spams.count()
 
 	print "There are currently %i stored records." % count_before
 	print "Preparing to process %i files." % len(files)
 
-	# code from stack_overflow
-	executor = concurrent.futures.ThreadPoolExecutor(10)
+	#dispatch
+	executor = concurrent.futures.ProcessPoolExecutor(10)
 	futures = [executor.submit(analyze_file, filename) for filename in files]
-	concurrent.futures.wait(futures)
+
+	# get results
+	for f in concurrent.futures.as_completed(futures):
+		r,e = f.result()
+		results += r
+		errors += e
+
+	# for filename in files:
+	# 	r,e = analyze_file(filename)
+	# 	results += r
+	# 	errors += e
 
 
 	count_after = db.spams.count()
 	print "There are now %i stored records." % db.spams.count()
 
-	inserts = db.results['inserts']
-	fails = db.results['fails']
-	duplicates = db.results['duplicates']
-	updates = db.results['updates']
-	matches = db.results['matches']
-	errors = db.errors
+	inserts = results['inserts']
+	fails = results['fails']
+	duplicates = results['duplicates']
+	updates = results['updates']
+	matches = results['matches']
 
 
 
