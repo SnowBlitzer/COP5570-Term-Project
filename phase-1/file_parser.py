@@ -1,20 +1,23 @@
 import os, sys, concurrent.futures
-from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
+# from pymongo import MongoClient
+# from pymongo.errors import DuplicateKeyError
 from collections import Counter
+from db_client import db
 
-# Init db connection
-client = MongoClient()
-db = client['spam-db']
-spams = db.spams
-spams.create_index("filename", unique=True)
+# # Init db connection
+# client = MongoClient()
+# db = client['spam-db']
+# spams = db.spams
+# spams.create_index("filename", unique=True)
+#
+# inserts = 0
+# fails = 0
+# duplicates = 0
+# updates = 0
+# matches = 0
+# errors = Counter()
 
-inserts = 0
-fails = 0
-duplicates = 0
-updates = 0
-matches = 0
-errors = Counter()
+year = None
 
 
 def clean_line(lineHandedIn):
@@ -42,7 +45,7 @@ def analyze_file(file_path):
 	Handles a single file path.
 	"""
 
-	global spams
+	# global spams
 	content = set()
 	word_count = Counter()
 	email = None
@@ -76,58 +79,21 @@ def analyze_file(file_path):
 			"words":list(content),
 			"wordCount":word_count,
 			"filename":file_path.split("/")[-1],
-			#"raw":str(open(file_path,"r").read())
+			"year": year
 		}
 
-		global inserts
-		global fails
-		global errors
-		global duplicates
-		global updates
-		global matches
-
-		# Attempt insert to Mongo
-		try:
-			spam_id = spams.insert_one(document)
-			if spam_id is not None:
-				inserts += 1
-
-		except DuplicateKeyError:
-			duplicates += 1
-
-			try:
-				result = spams.update_one(
-					{
-						'filename': document['filename']
-					},
-					{
-						"$set": {
-							"email": document['email'],
-							"wordCount": document['wordCount'],
-							"words": document['words']
-						}
-					}
-				)
-				matches += result.matched_count
-				updates += result.modified_count
-			except Exception as e:
-				print e
-
-		except Exception as e:
-			fails += 1
-			errors[type(e)] += 1
+		db.insert_document(document)
 
 
-
-
-def parse_files(files):
+def parse_files(files, file_year = None):
 	"""
 	Extracts content from list of files.
 	"""
 
-	global spams
+	global year
+	year = file_year
 
-	count_before = spams.count()
+	count_before = db.spams.count()
 
 	print "There are currently %i stored records." % count_before
 	print "Preparing to process %i files." % len(files)
@@ -138,15 +104,17 @@ def parse_files(files):
 	concurrent.futures.wait(futures)
 
 
-	count_after = spams.count()
-	print "There are now %i stored records." % spams.count()
+	count_after = db.spams.count()
+	print "There are now %i stored records." % db.spams.count()
 
-	global inserts
-	global fails
-	global errors
-	global duplicates
-	global updates
-	global matches
+	inserts = db.results['inserts']
+	fails = db.results['fails']
+	duplicates = db.results['duplicates']
+	updates = db.results['updates']
+	matches = db.results['matches']
+	errors = db.errors
+
+
 
 	print "There were %i new inserts." % inserts
 	print "There were {0} duplicate documents, {1} of which were found and {2} patched.".format(duplicates, matches, updates)
