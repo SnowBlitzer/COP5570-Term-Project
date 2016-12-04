@@ -1,6 +1,8 @@
 from collections import Counter
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
+from matplotlib import pyplot as plt
+import numpy as np
 
 client = MongoClient()    # Open client connection
 db = client['spam-db']    # choose database
@@ -15,6 +17,15 @@ for message in spams.find():
 		wordCounter[word] += 1
 
 
-
+word_label_list = list()
+word_counter_list = list()
 for word in wordCounter.most_common(100):
-	print "Word: "+ str(word)
+	word_label_list.append(word[0])
+	word_counter_list.append(word[1])
+
+spread = np.arange(100)
+plt.ax.bar(spread, word_counter_list, 0.35, color='r')
+plt.set_xticks(spread)
+plt.set_xticklabels(word_label_list)
+
+plt.show()
