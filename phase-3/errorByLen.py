@@ -36,4 +36,7 @@ print "Small: " + str(smallWrongWordCount/smallMessageCount)
 print "Medium: " + str(mediumWrongWordCount/mediumMessageCount)
 
 print "Large: " + str(largeWrongWordCount/largeMessageCount)
-
+with open("errorByLenData","w") as out_file:
+	out_file.write("small," + str(smallWrongWordCount/smallMessageCount)+","			"medium,"+str(mediumWrongWordCount/mediumMessageCount)+","
+			"large,"+str(largeWrongWordCount/largeMessageCount))
+			
