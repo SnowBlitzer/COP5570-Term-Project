@@ -106,7 +106,7 @@ def parse_files(files, file_year = None):
 	print "Preparing to process %i files." % len(files)
 
 	#dispatch
-	executor = concurrent.futures.ProcessPoolExecutor(10)
+	executor = concurrent.futures.ThreadPoolExecutor(10)
 	futures = [executor.submit(analyze_file, filename) for filename in files]
 
 	# get results
