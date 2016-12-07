@@ -72,7 +72,7 @@ def analyze_message(messageIn):
 		"words":list(content),
 		"wordCount":word_count,
 		"filename":messageIn['filename'],
-		"year": messageIn.find(headers['Date']).split(" ")[3]
+		"year": messageIn.find(headers['Date']).split()[3]
 	}
 
 	db.insert_document(document)
