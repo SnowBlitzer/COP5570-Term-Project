@@ -17,6 +17,9 @@ for message in spams.find():
         if "englishWords" not in message:
                 continue
 
+	if not message['englishWords']:
+		continue
+
 	wordCount = len(message['englishWords']) + len(message['nonEnglishWords'])
 
 	if wordCount < 20 and wordCount > 0:

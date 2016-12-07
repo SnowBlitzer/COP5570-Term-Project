@@ -11,6 +11,13 @@ spams = db.spams          # this is our collection
 wordCounter = Counter()
 
 for message in spams.find():
+
+	if "englishWords" not in message:
+	         continue
+
+	if not message['englishWords']:
+		continue
+	
 	for word in message['nonEnglishWords']:
 
 		wordCounter[word] += 1

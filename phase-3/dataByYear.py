@@ -17,12 +17,15 @@ for message in spams.find():
         recordCount += 1
 
 	
-	if "nonEnglishWords" not in message:
-		nonEnglishRecord += 1
-
+	if "nonEnglishWords" in message:
+		if message['nonEnglishWords']:
+			nonEnglishRecord += 1
 
         if "englishWords" not in message:
 	         continue
+
+	if not message['englishWords']:
+		continue
 
         if len(message['nonEnglishWords']) + len(message['englishWords']) > 0:
                 messageCount[4] += 1
