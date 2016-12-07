@@ -4,3 +4,4 @@ spams
 *.pyc
 .remote-sync.json
 *.txt
+phase-1/timings.md
