@@ -14,6 +14,9 @@ largeWrongWordCount = 0.0
 
 for message in spams.find():
 
+        if "englishWords" not in message:
+                continue
+
 	wordCount = len(message['englishWords']) + len(message['nonEnglishWords'])
 
 	if wordCount < 20 and wordCount > 0:
@@ -36,7 +39,7 @@ print "Small: " + str(smallWrongWordCount/smallMessageCount)
 print "Medium: " + str(mediumWrongWordCount/mediumMessageCount)
 
 print "Large: " + str(largeWrongWordCount/largeMessageCount)
-with open("errorByLenData","w") as out_file:
+with open("errorByLenData.txt","w") as out_file:
 	out_file.write("small," + str(smallWrongWordCount/smallMessageCount)+","			"medium,"+str(mediumWrongWordCount/mediumMessageCount)+","
 			"large,"+str(largeWrongWordCount/largeMessageCount))
 			

@@ -18,7 +18,7 @@ for message in spams.find():
 
 word_label_list = list()
 word_counter_list = list()
-out_file = open("exportData",'w')
+out_file = open("exportData.txt",'w')
 for word in wordCounter.most_common(100):
 	out_file.write(word[0])
 	out_file.write(",")
