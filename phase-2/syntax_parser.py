@@ -4,7 +4,8 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 import sys
 
-dict = enchant.Dict("en_US")
+edict = enchant.DictWithPWL("en_US", "mywords.txt")
+fdict = enchant.Dict("fr_FR")
 
 def get_client():
 	client = MongoClient()    # Open client connection
@@ -18,7 +19,7 @@ def process_message(message):
 
 	#cycles through dictionary of words
 	for word in message['wordCount']:
-		if(dict.check(word)):
+		if(edict.check(word) or fdict.check(word)):
 			wordList.append(word)
 		else:
 			nonWordList.append(word)
