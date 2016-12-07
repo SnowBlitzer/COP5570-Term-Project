@@ -42,7 +42,7 @@ def process_message(message):
 def process_year(year):
 
 	db = get_client()
-	documents = db.find({"year":year, "englishWords":None})
+	documents = db.find({"year":year, "englishWords":None, "words":{"$ne":None}})
 	print "There are {0} unprocessed documents in year {1}".format(documents.count(), year)
 	for document in documents:
 		process_message(document)
