@@ -11,6 +11,13 @@ spams = db.spams          # this is our collection
 wordCounter = Counter()
 
 for message in spams.find():
+
+	if "englishWords" not in message:
+	         continue
+
+	if not message['englishWords']:
+		continue
+	
 	for word in message['nonEnglishWords']:
 
 		wordCounter[word] += 1
@@ -18,7 +25,7 @@ for message in spams.find():
 
 word_label_list = list()
 word_counter_list = list()
-out_file = open("exportData",'w')
+out_file = open("exportData.txt",'w')
 for word in wordCounter.most_common(100):
 	out_file.write(word[0])
 	out_file.write(",")

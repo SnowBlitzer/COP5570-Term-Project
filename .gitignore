@@ -3,3 +3,4 @@ test-inputs
 spams
 *.pyc
 .remote-sync.json
+*.txt
