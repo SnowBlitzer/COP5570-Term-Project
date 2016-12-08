@@ -35,18 +35,27 @@ def process_message(message):
 			"$set": {
 				"englishWords": wordList,
 				"nonEnglishWords": nonWordList,
-				"version":2
+				"version":3
 			}
 		}
 	)
 
 def process_year(year):
 
+	ok = 0
+	nope = 0
+
 	db = get_client()
-	documents = db.find({"year":year, "version":{'$lt':2}})
+	documents = db.find({"year":year, "version":{'$lt':3}})
 	print "There are {0} unprocessed documents in year {1}".format(documents.count(), year)
 	for document in documents:
-		process_message(document)
+		try:
+			process_message(document)
+			ok+=1
+		except:
+			nope+=1
+
+	print "For year {0}, we had {1} ok and {2} fails".format(year, ok, nope)
 
 
 if __name__ == "__main__":
@@ -58,11 +67,12 @@ if __name__ == "__main__":
 
 	print years
 
-	executor = concurrent.futures.ProcessPoolExecutor(len(years))
-	futures = [executor.submit(process_year, year) for year in years]
-	concurrent.futures.wait(futures)
+	# executor = concurrent.futures.ProcessPoolExecutor(len(years))
+	# futures = [executor.submit(process_year, year) for year in years]
+	# concurrent.futures.wait(futures)
 
-
+	for year in years:
+		process_year(year)
 
 	#for printing during testing
 	#print "------Words:--------\n"
