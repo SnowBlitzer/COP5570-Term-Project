@@ -39,14 +39,14 @@ def analyze_message(messageIn):
 	email = None
 
 	#Iterate through file contents
-	for line in messageIn['body']:
-		line_tokens = line.split()
+	#for line in messageIn['body']:
+	line_tokens = messageIn['body'].split()
 
-		if len(line_tokens) > 1:
-			#Discard links and strip characters. Add it to the list
-			new_content, new_count = clean_line(line_tokens)
-			content = content.union(new_content)
-			word_count += new_count
+	if len(line_tokens) > 1:
+		#Discard links and strip characters. Add it to the list
+		new_content, new_count = clean_line(line_tokens)
+		content = content.union(new_content)
+		word_count += new_count
 
 	# Add our fields
 	control.update_one(
