@@ -70,7 +70,7 @@ def parse_documents():
 	Extracts content from list of files.
 	"""
 
-	count_before = control.find({"version":None}).count()
+	count_before = control.find().count()
 
 	print "There are currently %i unprocessed records." % count_before
 
@@ -79,7 +79,7 @@ def parse_documents():
 	# futures = [executor.submit(analyze_message, document) for document in control.find()]
 	# concurrent.futures.wait(futures)
 
-	for document in control.find({"version":None}):
+	for document in control.find():
 		analyze_message(document)
 
 	count_after = control.count()
