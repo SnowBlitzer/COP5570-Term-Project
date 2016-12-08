@@ -8,17 +8,6 @@ from db_client import DB_Driver
 client = MongoClient()
 db = client['spam-db']
 control = db.control
-# spams.create_index("filename", unique=True)
-#
-# inserts = 0
-# fails = 0
-# duplicates = 0
-# updates = 0
-# matches = 0
-# errors = Counter()
-
-year = None
-
 
 def clean_line(lineHandedIn):
 	"""
@@ -42,94 +31,60 @@ def filter_data(item):
 
 def analyze_message(messageIn):
 	"""
-	Handles a single file path.
+	Handles a single pre-existing document.
 	"""
 
-	db = DB_Driver()
-
-	# global spams
 	content = set()
 	word_count = Counter()
 	email = None
 
-	
-	add_flag = False
 	#Iterate through file contents
 	for line in messageIn['body']:
 		line_tokens = line.split()
 
 		if len(line_tokens) > 1:
-			#if the flag is set, clean up all the data.
 			#Discard links and strip characters. Add it to the list
-			
 			new_content, new_count = clean_line(line_tokens)
 			content = content.union(new_content)
 			word_count += new_count
 
-	# Format data for Mongo
-	document = {
-		"email":messageIn.find(headers['From']),
-		"words":list(content),
-		"wordCount":word_count,
-		"filename":messageIn['filename'],
-		"year": messageIn.find(headers['Date']).split()[3]
-	}
+	# Add our fields
+	control.update_one(
+		{
+			'_id': messageIn['_id']
+		},
+		{
+			"$set":{
+				"email":messageIn['headers']['From'],
+				"words":list(content),
+				"wordCount":word_count,
+				"year": messageIn['headers']['Date'].split()[3],
+				"version":1
+			}
+		}
+	)
 
-	db.insert_document(document)
 
-	return db.results, db.errors
-
-
-def parse_files(files, file_year = None):
+def parse_documents():
 	"""
 	Extracts content from list of files.
 	"""
 
-	global year
-	#year = file_year
-	results = Counter()
-	errors = Counter()
+	count_before = control.find({"version":None}).count()
 
-	db = DB_Driver()
-	count_before =0# db.control.count()
-
-	print "There are currently %i stored records." % count_before
-	print "Preparing to process %i files." % len(files)
+	print "There are currently %i unprocessed records." % count_before
 
 	#dispatch
-	executor = concurrent.futures.ThreadPoolExecutor(10)
-	futures = [executor.submit(analyze_message, messages) for messages in control.find()]
+	# executor = concurrent.futures.ThreadPoolExecutor(10)
+	# futures = [executor.submit(analyze_message, document) for document in control.find()]
+	# concurrent.futures.wait(futures)
 
-	# get results
-	for f in concurrent.futures.as_completed(futures):
-		r,e = f.result()
-		results += r
-		errors += e
+	for document in control.find({"version":None}):
+		analyze_message(document)
 
-	# for filename in files:
-	# 	r,e = analyze_file(filename)
-	# 	results += r
-	# 	errors += e
-
-
-	count_after = db.control.count()
-	print "There are now %i stored records." % db.control.count()
-
-	inserts = results['inserts']
-	fails = results['fails']
-	duplicates = results['duplicates']
-	updates = results['updates']
-	matches = results['matches']
-
-
-
-	print "There were %i new inserts." % inserts
-	print "There were {0} duplicate documents, {1} of which were found and {2} patched.".format(duplicates, matches, updates)
-
-	print "There were %i failures." % fails
-	if len(errors) > 0:
-		print errors
+	count_after = control.count()
+	print "There are now %i stored records." % control.count()
 
 
 if __name__ == '__main__':
-	print "This script only contains functions, please use driver.py."
+	parse_documents()
